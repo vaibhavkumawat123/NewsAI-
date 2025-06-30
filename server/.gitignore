@@ -1,0 +1,28 @@
+# Node.js dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Environment files
+.env
+.env.local
+
+# Firebase credentials (you had secrets here!)
+server/key/*.json
+
+# OS / IDE / Misc files
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# Optional: coverage from testing tools
+coverage/
