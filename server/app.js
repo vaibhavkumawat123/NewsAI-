@@ -22,23 +22,24 @@ const app = express();
 // Logging middleware
 app.use(morgan("combined"));
 
-// CORS
+// ✅ CORS: Only allow frontend domains
 app.use(
   cors({
-    credentials: true,
     origin: [
       "http://localhost:5173",
-      "https://newsai-pj5e.onrender.com",
-      "https://news-ai-delta-lime.vercel.app",
+      "https://news-ai-delta-lime.vercel.app", // your Vercel frontend
     ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
-// Middleware
+// Core Middleware
 app.use(cookieParser());
 app.use(express.json());
 
-// Firebase Admin SDK setup
+// ✅ Firebase Admin Setup
 const serviceAccount = {
   type: process.env.FIREBASE_TYPE,
   project_id: process.env.FIREBASE_PROJECT_ID,
@@ -59,17 +60,24 @@ admin.initializeApp({
 // Connect to MongoDB
 dbConnect();
 
-// Route handlers
+// ✅ Health check route
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok", message: "Server is alive ✅" });
+});
+
+// Home route
 app.get("/", (req, res) => {
   res.send("HomePage");
 });
+
+// Route handlers
 app.use("/auth", userRoutes);
 app.use("/api", newRoutes);
 app.use("/api", bookmarksRoutes);
 app.use("/api", aiRoutes);
 app.use("/api", readingHistoryRoutes);
 
-// News Fetching
+// News Fetching (CRON + Axios + MongoDB)
 const countries = ["us", "uk", "fr", "in", "it"];
 const categories = [
   "health",
@@ -108,9 +116,7 @@ const fetchNewsAndStore = async () => {
                   name: article.source.name,
                 },
               });
-              console.log(
-                `Inserted: ${article.title} [${category}-${country}]`
-              );
+              console.log(`Inserted: ${article.title} [${category}-${country}]`);
             } else {
               console.log(`Already exists: ${article.title}`);
             }
@@ -125,11 +131,12 @@ const fetchNewsAndStore = async () => {
   }
 };
 
-// Schedule news fetching every 15 mins
+// ⏰ Run every 15 minutes
 cron.schedule("*/15 * * * *", fetchNewsAndStore);
 
-// Start server after DB connection
+// ✅ Server Start
 const PORT = process.env.PORT || 3000;
+
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -137,7 +144,9 @@ mongoose
   })
   .then(() => {
     console.log("✅ MongoDB connected");
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    app.listen(PORT, () =>
+      console.log(`🚀 Server running: http://localhost:${PORT}`)
+    );
   })
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err);
