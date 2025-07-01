@@ -1,11 +1,14 @@
-import express from 'express'
-import { fetchAllNews, fetchNewsByCategory, Preferences } from '../controllers/newsController.js';
+import express from 'express';
+import {
+  fetchAllNews,
+  fetchNewsByCategory,
+  Preferences,
+} from '../controllers/newsController.js';
 
+const newRoutes = express.Router();
 
-const newRoutes= express.Router() ;
-
+newRoutes.get('/news', fetchAllNews);
 newRoutes.get('/news/:category', fetchNewsByCategory);
-newRoutes.post('/preferences/:id' , Preferences) 
-newRoutes.get('/news/:category' , fetchNewsByCategory )
-newRoutes.get('/news' , fetchAllNews)
-export default newRoutes 
+newRoutes.post('/preferences/:id', Preferences);
+
+export default newRoutes;
