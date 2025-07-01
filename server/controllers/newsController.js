@@ -88,8 +88,11 @@ export const fetchAllNews = async (req, res) => {
       length: news.length,
       data: news,
     });
-  } catch (error) {
-    console.error('Error fetching all news:', error.message);
-    res.status(500).json({ message: 'Internal server error' });
-  }
+ } catch (error) {
+  console.error('News API Error:', error.response?.data || error.message);
+  res.status(500).json({
+    message: error.response?.data?.message || 'Internal server error',
+    reason: error.response?.data || error.message,
+  });
+}
 };
