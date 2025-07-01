@@ -37,62 +37,34 @@ export const fetchNewsByCategory = async (req, res) => {
     );
 
     if (!response.data.articles.length) {
-      return res
-        .status(404)
-        .json({ message: 'No news found for this category.' });
+      return res.status(404).json({ message: 'No news found for this category.' });
     }
 
     res.status(200).json({
       news: response.data.articles,
-      nextPage:
-        response.data.articles.length === pageSize ? Number(page) + 1 : null,
+      nextPage: response.data.articles.length === pageSize ? Number(page) + 1 : null,
     });
+
   } catch (error) {
-    console.error(
-      'Error fetching news:',
-      error.response?.data || error.message
-    );
-    res.status(500).json({ message: 'Internal server error' });
-  }
-};
+    console.error("❌ Error:", error.response?.data || error.message);
 
-// Fetch all news (used for search)
-export const fetchAllNews = async (req, res) => {
-  console.log(req.query);
-  const { limit = 20, page = 1, keyword } = req.query;
-  console.log(keyword);
-
-  const query = keyword
-    ? {
-        $or: [
-          { title: { $regex: keyword, $options: 'i' } },
-          { content: { $regex: keyword, $options: 'i' } },
-          { description: { $regex: keyword, $options: 'i' } },
-          { author: { $regex: keyword, $options: 'i' } },
-          { url: { $regex: keyword, $options: 'i' } },
+    // ✅ Handle API quota exceeded
+    if (error.response?.data?.code === 'rateLimited') {
+      return res.status(200).json({
+        news: [
+          {
+            title: "⚠️ API quota exceeded",
+            description: "Upgrade to paid plan or wait for reset.",
+            url: "#",
+            urlToImage: "https://via.placeholder.com/400x200",
+            publishedAt: new Date().toISOString(),
+            content: "This is dummy fallback news.",
+          },
         ],
-      }
-    : {};
+        nextPage: null,
+      });
+    }
 
-  try {
-    const news = await News.find(query)
-      .sort({ createdAt: -1 })
-      .limit(Number(limit))
-      .skip((page - 1) * limit);
-
-    const totalCount = await News.countDocuments(query);
-
-    res.status(200).json({
-      totalCount,
-      totalPages: Math.ceil(totalCount / limit),
-      length: news.length,
-      data: news,
-    });
- } catch (error) {
-  console.error('News API Error:', error.response?.data || error.message);
-  res.status(500).json({
-    message: error.response?.data?.message || 'Internal server error',
-    reason: error.response?.data || error.message,
-  });
-}
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
 };
