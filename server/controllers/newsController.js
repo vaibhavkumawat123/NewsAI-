@@ -1,6 +1,6 @@
-import User from '../model/User.js';
-import axios from 'axios';
-import News from '../model/News.js';
+import User from "../model/User.js";
+import axios from "axios";
+import News from "../model/News.js";
 
 // Save user preferences
 export const Preferences = async (req, res) => {
@@ -16,7 +16,7 @@ export const Preferences = async (req, res) => {
     await user.save();
 
     res.status(200).json({
-      message: 'Preferences saved successfully',
+      message: "Preferences saved successfully",
     });
   } catch (error) {
     res.status(500).json({
@@ -37,19 +37,22 @@ export const fetchNewsByCategory = async (req, res) => {
     );
 
     if (!response.data.articles.length) {
-      return res.status(404).json({ message: 'No news found for this category.' });
+      return res
+        .status(404)
+        .json({ message: "No news found for this category." });
     }
 
     res.status(200).json({
       news: response.data.articles,
-      nextPage: response.data.articles.length === pageSize ? Number(page) + 1 : null,
+      nextPage:
+        response.data.articles.length === pageSize ? Number(page) + 1 : null,
     });
-
   } catch (error) {
+    res.status(500).json({ message: error.message });
     console.error("❌ Error:", error.response?.data || error.message);
 
     // ✅ Handle API quota exceeded
-    if (error.response?.data?.code === 'rateLimited') {
+    if (error.response?.data?.code === "rateLimited") {
       return res.status(200).json({
         news: [
           {
@@ -65,6 +68,6 @@ export const fetchNewsByCategory = async (req, res) => {
       });
     }
 
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
