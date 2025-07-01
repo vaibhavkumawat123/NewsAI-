@@ -71,3 +71,19 @@ export const fetchNewsByCategory = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+export const fetchAllNews = async (req, res) => {
+  try {
+    const response = await axios.get(
+      `https://newsapi.org/v2/top-headlines?language=en&pageSize=10&page=1&apiKey=${process.env.NEWS_API_KEY}`
+    );
+
+    res.status(200).json({
+      news: response.data.articles,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message || 'Failed to fetch all news',
+    });
+  }
+};
