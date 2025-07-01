@@ -26,7 +26,7 @@ app.use(morgan('combined'));
 app.use(
   cors({
     credentials: true,
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:5173', 'https://newsai-pj5e.onrender.com'],
   })
 );
 

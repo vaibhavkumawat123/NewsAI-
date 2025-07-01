@@ -3,7 +3,7 @@ import { fetchAllNews, fetchNewsByCategory, Preferences } from '../controllers/n
 
 const newRoutes= express.Router() ;
 
-
+newRoutes.get('/news/:category', fetchNewsByCategory);
 newRoutes.post('/preferences/:id' , Preferences) 
 newRoutes.get('/news/:category' , fetchNewsByCategory )
 newRoutes.get('/news' , fetchAllNews)
