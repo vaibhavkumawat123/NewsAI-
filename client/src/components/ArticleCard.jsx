@@ -8,18 +8,18 @@ import {
   Flex,
   Popover,
   Tooltip,
-} from '@mantine/core';
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import axios from 'axios';
-import { Eye, Bookmark, Sparkles, Copy, Share2 } from 'lucide-react';
-import { addBookmarks, removeBookmarks } from '../redux/slice/newsSlice';
-import { useDispatch } from 'react-redux';
+} from "@mantine/core";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import axios from "axios";
+import { Eye, Bookmark, Sparkles, Copy, Share2 } from "lucide-react";
+import { addBookmarks, removeBookmarks } from "../redux/slice/newsSlice";
+import { useDispatch } from "react-redux";
 const ArticleCard = ({ article, category }) => {
   const [opened, setOpened] = useState(false);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [summary, setSummary] = useState('');
+  const [summary, setSummary] = useState("");
   const [copySuccess, setCopySuccess] = useState(false);
   const [bookmarks, setBookmarks] = useState(true);
 
@@ -78,8 +78,12 @@ const ArticleCard = ({ article, category }) => {
     >
       {article.urlToImage && (
         <Image
-          src={article.urlToImage}
-          alt={article.title}
+          src={
+            article.urlToImage?.startsWith("http")
+              ? article.urlToImage
+              : "https://via.placeholder.com/400x200"
+          }
+          alt={article.title || "News Image"}
           h={200}
           w="auto"
           fit="contain"
@@ -93,7 +97,7 @@ const ArticleCard = ({ article, category }) => {
         </Badge>
         <h2
           className="cursor-pointer text-xl hover:text-amber-500 hover:underline mt-2"
-          onClick={() => window.open(article.url, '_blank')}
+          onClick={() => window.open(article.url, "_blank")}
         >
           {article.title}
         </h2>
@@ -110,7 +114,7 @@ const ArticleCard = ({ article, category }) => {
           </Flex>
 
           <Tooltip
-            label={bookmarks ? 'Bookmark this article' : 'Remove Bookmark'}
+            label={bookmarks ? "Bookmark this article" : "Remove Bookmark"}
             withArrow
             position="top"
           >
@@ -118,9 +122,9 @@ const ArticleCard = ({ article, category }) => {
               onClick={() => toogleBookmarks(article)}
               variant="outline"
               size="sm"
-              color={bookmarks ? 'blue' : 'red'}
+              color={bookmarks ? "blue" : "red"}
             >
-              <Bookmark size={18} fill={bookmarks ? null : 'currentColor'} />
+              <Bookmark size={18} fill={bookmarks ? null : "currentColor"} />
             </ActionIcon>
           </Tooltip>
 
@@ -139,13 +143,13 @@ const ArticleCard = ({ article, category }) => {
                   onClick={handleSummarize}
                   size="md"
                   color="yellow"
-                  gradient={{ from: 'blue', to: 'cyan', deg: 330 }}
+                  gradient={{ from: "blue", to: "cyan", deg: 330 }}
                 >
                   <Sparkles size={18} />
                 </ActionIcon>
               </Tooltip>
             </Popover.Target>
-            <Popover.Dropdown style={{ minHeight: isLoading ? 150 : 'auto' }}>
+            <Popover.Dropdown style={{ minHeight: isLoading ? 150 : "auto" }}>
               {isLoading ? (
                 <Flex align="center" justify="center" gap="sm">
                   <motion.span
@@ -166,7 +170,7 @@ const ArticleCard = ({ article, category }) => {
                 </Flex>
               ) : (
                 <motion.div>
-                  {summary.split(' ').map((word, index) => (
+                  {summary.split(" ").map((word, index) => (
                     <motion.span
                       key={index}
                       className="text-gray-800"
@@ -174,12 +178,12 @@ const ArticleCard = ({ article, category }) => {
                       animate={{ opacity: 1 }}
                       transition={{ delay: index * 0.05 }}
                     >
-                      {word}{' '}
+                      {word}{" "}
                     </motion.span>
                   ))}
                   <Flex justify="flex-end" mt="sm">
                     <Tooltip
-                      label={copySuccess ? 'Copied!' : 'Copy summary'}
+                      label={copySuccess ? "Copied!" : "Copy summary"}
                       withArrow
                       position="top"
                     >
