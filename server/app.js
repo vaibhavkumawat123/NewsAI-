@@ -1,41 +1,54 @@
 import express from "express";
 import dotenv from "dotenv";
-import dbConnect from "./config/db.js";
-import userRoutes from "./routes/userRoutes.js";
 import cookieParser from "cookie-parser";
-import newRoutes from "./routes/newRoutes.js";
 import cors from "cors";
-import axios from "axios";
-import bookmarksRoutes from "./routes/bookmarksRoutes.js";
-import readingHistoryRoutes from "./routes/readingHistoryRoutes.js";
 import morgan from "morgan";
-import aiRoutes from "./routes/aiRoutes.js";
-import News from "./model/News.js";
 import cron from "node-cron";
 import mongoose from "mongoose";
 import admin from "firebase-admin";
+import axios from "axios";
 
+// Routes & Models
+import dbConnect from "./config/db.js";
+import userRoutes from "./routes/userRoutes.js";
+import newRoutes from "./routes/newRoutes.js";
+import bookmarksRoutes from "./routes/bookmarksRoutes.js";
+import readingHistoryRoutes from "./routes/readingHistoryRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js";
+import News from "./model/News.js";
+
+// Load environment variables
 dotenv.config();
 
+// Initialize Express
 const app = express();
 
-// Logging middleware
+// ✅ Setup Logging
 app.use(morgan("combined"));
 
-// ✅ CORS: Only allow frontend domains
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://news-ai-delta-lime.vercel.app", // your Vercel frontend
-    ],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
+// ✅ CORS Configuration
+const corsOptions = {
+  origin: ["http://localhost:5173", "https://news-ai-delta-lime.vercel.app"],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
-// Core Middleware
+// ✅ Fallback CORS Headers (for edge cases like Firebase popup)
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  next();
+});
+
+// ✅ Core Middlewares
 app.use(cookieParser());
 app.use(express.json());
 
@@ -57,27 +70,27 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-// Connect to MongoDB
+// ✅ Connect to MongoDB
 dbConnect();
 
-// ✅ Health check route
+// ✅ Health Check Route
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is alive ✅" });
 });
 
-// Home route
+// ✅ Default Home Route
 app.get("/", (req, res) => {
-  res.send("HomePage");
+  res.send("Welcome to NewsAI Backend 🌐");
 });
 
-// Route handlers
+// ✅ API Routes
 app.use("/auth", userRoutes);
 app.use("/api", newRoutes);
 app.use("/api", bookmarksRoutes);
 app.use("/api", aiRoutes);
 app.use("/api", readingHistoryRoutes);
 
-// News Fetching (CRON + Axios + MongoDB)
+// ✅ News Cron Job (runs every 15 min)
 const countries = ["us", "uk", "fr", "in", "it"];
 const categories = [
   "health",
@@ -116,25 +129,25 @@ const fetchNewsAndStore = async () => {
                   name: article.source.name,
                 },
               });
-              console.log(`Inserted: ${article.title} [${category}-${country}]`);
+              console.log(`✅ Inserted: ${article.title} [${category}-${country}]`);
             } else {
-              console.log(`Already exists: ${article.title}`);
+              console.log(`ℹ️ Already exists: ${article.title}`);
             }
           }
         } else {
-          console.log(`No articles for ${category}-${country}`);
+          console.log(`⚠️ No articles found for ${category}-${country}`);
         }
       } catch (err) {
-        console.error(`Error fetching ${category}-${country}:`, err.message);
+        console.error(`❌ Error fetching ${category}-${country}:`, err.message);
       }
     }
   }
 };
 
-// ⏰ Run every 15 minutes
+// Schedule Cron
 cron.schedule("*/15 * * * *", fetchNewsAndStore);
 
-// ✅ Server Start
+// ✅ Start Server
 const PORT = process.env.PORT || 3000;
 
 mongoose
@@ -145,9 +158,9 @@ mongoose
   .then(() => {
     console.log("✅ MongoDB connected");
     app.listen(PORT, () =>
-      console.log(`🚀 Server running: http://localhost:${PORT}`)
+      console.log(`🚀 Server running on: http://localhost:${PORT}`)
     );
   })
   .catch((err) => {
-    console.error("❌ MongoDB connection error:", err);
+    console.error("❌ MongoDB connection failed:", err);
   });
